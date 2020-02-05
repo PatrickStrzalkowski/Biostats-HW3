@@ -1,0 +1,169 @@
+---
+title: "Homework 3"
+author: "Patrick Strzalkowski"
+date: "29/01/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Part I - ANOVAs
+#Killarney Wilderness Park
+```{r}
+plank.data=read.csv("Killarney.csv")
+plank.data
+```
+```{r}
+#1
+boxplot(plank.data$Diversity~plank.data$status, ylab="Plankton Diversity", xlab="Lake Status")
+```
+#2 It appears that the Acidic Lakes have a lower diversity of plankton than the Neutral Lakes and probably Recovered Lakes as well
+```{r}
+#3: One Factor ANOVA, test for differences of species diversity between the three lake types
+plank.fit<-aov(plank.data$Diversity~plank.data$status)
+summary(plank.fit)
+```
+#4 The null hypothesis is that the diversity of plankton is independent from the status of the lake.
+#5 test statistic: F=16.41, p-value=5.43e-06
+#6 Since the p-value is less than 0.05 the diversitieis do differ between the three lake types.
+```{r}
+#7 - Tukey Test: to determine which lakes differed in their species diversity
+TukeyHSD(plank.fit)
+```
+#8 Based on the Tukey Test, the Acidic Lakes are signficiantly different than the Recovered and the Neutral Lakes. The Neutral Lakes and the Recovered Lakes are not statistically different from one another.
+```{r}
+#9 - Testing for assumptions
+#Shapiro Wilks Test for Normality:
+shapiro.test(plank.fit$residuals)
+hist(plank.fit$residuals)
+```
+# Since the p-value < 0.05 we reject the null hypothesis that the residuals are normally distributed, the residuals are not normally distributed.
+```{r}
+#Levene's Test that all populations have similar variance:
+library("car")
+leveneTest(plank.data$Diversity,plank.data$status)
+```
+# Since the p-value > 0.05 we fail to reject the null hypothesis that the populations have equal variance. This data meets the assumption that the populations have equal variance
+
+# Esophageal Cancer
+```{r}
+#10 - Two factor ANOVA
+#a) Tobacco and Alcohol Consumption:
+esoph.data<-read.csv("esoph.csv")
+esoph.data
+```
+
+```{r}
+esoph.fit1<-aov(esoph.data$ncases~esoph.data$Alcohol*esoph.data$Tobacco)
+summary(esoph.fit1)
+```
+#b) This ANOVA table does not show a signifcant relationship between alcohol consumption and esophageal cancers cases (p=0.110). It does not show a significant relationship between Tobacco consumption and esophageal cancer either (p=0.146). As well, the interaction between alcohol and tobacco consumption is not significant (p=0.892).
+```{r}
+#11a) Tobacco and Age:
+esoph.fit2<-aov(esoph.data$ncases~esoph.data$Tobacco*esoph.data$Age)
+summary(esoph.fit2)
+```
+```{r}
+#b) Tukey Test
+TukeyHSD(esoph.fit2)
+```
+# c) Based on the ANOVA table, the amount of Tobacco consumed daily (p<0.05) and how old someone is (p<<0.05) has a significant affect on their chance of having esophageal cancer. However, these two variables are not interacting (p=0.1822). The Tukey test displays a significant difference between the frequency of esophageal cancer cases in people that consume 0-9 g of tobacco versus people that consume over 30 g. All other differences are insignificant (p>0.05). The Tukey test displays multiple, significant difference between peoples' age and their rate of esophageal cancer cases. The frequency is signficantly different between people aged 25-34 vs. 45-54 (p=0.0028), 25-34 vs. 55-64 (p=0.2*10^-6), 25-34 vs. 65-74 (p=0.0001), 35-44 vs. 45-54 (p=0.0251), 35-44 vs. 55-64 (p=0.35*10^-5), 35-44 vs. 65-74 (p=0.0013), 55-64 vs. 75+ (p=0.0001) and 65-74 vs. 75+ (0.0146).
+
+```{r}
+#12a) Alcohol and Age:
+esoph.fit3<-aov(esoph.data$ncases~esoph.data$Alcohol*esoph.data$Age)
+summary(esoph.fit3)
+```
+```{r}
+#b) Interaction Plot
+interaction.plot(esoph.data$Age,esoph.data$Alcohol,esoph.data$ncases, col=c("blue", "green", "red", "yellow"))
+```
+# c) The effect of Alcohol and Age on esophageal cases is significant, however their interaction is also significant (p=0.036), therefore we only look at the interaction between the two variables. The interaction plot displays a complicated relationship between alcohol consumption and age. The lines are not parallel, therefore the relationship between alcohol consumption and esophageal cases depends on the person's age. At young (25-34 y.o.) and old (75+ y.o.) there is little difference, however in the middle ranges of age there are increases of esophageal cases, which also depend on the amount of alcohol consumed. 
+
+#Part II - Regression and Correlation
+
+```{r}
+mtcars
+```
+```{r}
+#13 Care Weight vs. Car Mileage
+#a)
+plot(mtcars$mpg~mtcars$wt)
+
+```
+```{r}
+#b) 
+my.fit1<-glm(mtcars$mpg~mtcars$wt)
+my.fit1
+```
+```{r}
+#linear regression
+summary.lm(my.fit1)
+```
+```{r}
+#c fitting a linear regression
+plot(mtcars$wt,mtcars$mpg, xlab= "Car Weight", ylab= "Car Mileage", )
+abline(lm(mpg~wt, data =mtcars), col = "blue")
+```
+# Linear Regression Line Equation: y=-5.344x + 37.285
+# Gas milarge is signifcantly relate to car weight. The p-value is 1.29e-10
+```{r}
+#14 Relationship between horsepower and quarter mile time
+#a)
+plot(mtcars$qsec~mtcars$hp)
+```
+# Yes, quarter mile time does seem to depend on the horsepower of the car
+```{r}
+#b)
+my.fit2<-glm(mtcars$qsec~mtcars$hp)
+summary.lm(my.fit2)
+```
+```{r}
+#c fitting a linear regression
+plot(mtcars$hp,mtcars$qsec, xlab= "Horsepower", ylab= "Quarter Mile Time (sec)")
+abline((my.fit2), col="blue")
+```
+```{r}
+#d)
+my.fit2
+```
+
+```{r}
+y=-0.01846*300 + 20.55635
+y
+```
+#since y=-0.01846x + 20.55635, when the horsepower is 300 (y=-0.01846*300 + 20.55635) the quater mile time is 15.02 seconds
+#e (mistake in the question, it asks for relation between gas mileage and car weight, I'm guessing this is supposed to ask for the relationship between horsepower and quarter mile time) Quarter mile time is significantly related to horsepower (p=5.77e-06)
+```{r}
+#f testing for assumptions
+#gvlma was installed
+library(gvlma)
+gvlma(lm(my.fit2))
+```
+#f) The data met all the required assumptions except for Kurtosis (p<0.05). The residuals were not normally distributed.
+
+```{r}
+#15 Prices of Horses
+horse.data<-read.csv("HorsePrices.csv")
+horse.data
+```
+```{r}
+#b Is horse height and selling price correlated?
+plot(horse.data$Price~horse.data$Height)
+```
+```{r}
+#c
+horse.fit=glm(horse.data$Price~horse.data$Height)
+summary.lm(horse.fit)
+```
+```{r}
+#c Testing for correlation: take the square root of the Multiple R-sqaured value (0.1964)
+sqrt(0.1964)
+#Therefore, r=0.4431704
+
+```
+#d)The correlation between horse price and horse height is significant (p=0.00181, p<0.05)
+
+
+
